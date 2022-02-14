@@ -11,7 +11,7 @@ int main()
 	insts.push_back(0x00000011);
 	insts.push_back(0x00000001);
 	insts.push_back(0x0000026A);
-	insts.push_back(0x00000012);
+	insts.push_back(0x00000013);
 	insts.push_back(0x00000000);
 	insts.push_back(0x00000001);
 	insts.push_back(0x00000002);
