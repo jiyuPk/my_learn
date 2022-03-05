@@ -1,6 +1,8 @@
 import { Universe, Cell  } from "game-of-life";
 import { memory } from "game-of-life/game_of_life_bg";
 
+let animationId = null;
+
 const CELL_SIZE = 5; // px
 const GRID_COLOR = "#CCCCCC";
 const DEAD_COLOR = "#FFFFFF";
@@ -17,12 +19,12 @@ canvas.width = (CELL_SIZE + 1) * width + 1;
 const ctx = canvas.getContext('2d');
 
 const renderLoop = () => {
-    universe.tick();
-
     drawGrid();
     drawCells();
 
-    requestAnimationFrame(renderLoop);
+    universe.tick();
+
+    animationId = requestAnimationFrame(renderLoop);
 };
 
 const drawGrid = () => {
@@ -54,6 +56,10 @@ const bitIsSet = (n, arr) => {
     return (arr[byte] & mask) === mask;
 };
 
+const isPaused = () => {
+    return animationId === null;
+};
+
 const drawCells = () => {
     const cellsPtr = universe.cells();
     const cells = new Uint8Array(memory.buffer, cellsPtr, width * height / 8);
@@ -77,8 +83,47 @@ const drawCells = () => {
         }
     }
 
-    ctx.stroke();}
+    ctx.stroke();
+};
 
+const playPauseButton = document.getElementById("play-pause");
+
+const play = () => {
+    playPauseButton.textContent = "⏸";
+    renderLoop();
+};
+
+const pause = () => {
+    playPauseButton.textContent = "▶";
+    cancelAnimationFrame(animationId);
+    animationId = null;
+};
+
+playPauseButton.addEventListener("click", event => {
+    if (isPaused()) {
+        play();
+    } else {
+        pause();
+    }
+});
+
+canvas.addEventListener("click", event => {
+    const boundingRect = canvas.getBoundingClientRect();
+
+    const scaleX = canvas.width / boundingRect.width;
+    const scaleY = canvas.height / boundingRect.height;
+
+    const canvasLeft = (event.clientX - boundingRect.left) * scaleX;
+    const canvasTop = (event.clientY - boundingRect.top) * scaleY;
+
+    const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), height - 1);
+    const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), width - 1);
+
+    universe.toggle_cell(row, col);
+
+    drawGrid();
+    drawCells();
+});
 drawGrid();
 drawCells();
-requestAnimationFrame(renderLoop);
+play();
